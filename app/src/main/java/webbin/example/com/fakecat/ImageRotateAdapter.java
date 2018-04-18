@@ -45,6 +45,7 @@ public class ImageRotateAdapter extends RecyclerView.Adapter {
         imageViewHolder.imageView.setIndex(data.getIndex());
         imageViewHolder.imageView.setImageResource(data.getResource());
         imageViewHolder.imageView.setNewAngle(data.getInitAngle());
+        imageViewHolder.imageView.setCurrentAngle(data.getInitAngle());
         imageViewHolder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
