@@ -194,7 +194,7 @@ public class FakeCatActivity extends AppCompatActivity {
                 }
             });
             imageViewHolder.imageView.setRotatingListener(data.getListener());
-            if (position < imageList.length) {
+            if (position < imageList.length && imageList[position] == null) {
                 imageList[position] = imageViewHolder.imageView;
             }
         }
