@@ -9,7 +9,7 @@ import android.util.AttributeSet;
 public class RotateImageView extends AppCompatImageView {
 
     private int currentAngle = 0;
-    private int duration = 500;
+    private int duration = Constant.RATATE_DURATION;
     private int index = 0;
     private RotatingListener rotatingListener;
 
@@ -40,6 +40,18 @@ public class RotateImageView extends AppCompatImageView {
         if (rotatingListener != null) {
             rotatingListener.onEndRotate(index, getPointer(currentAngle));
         }
+    }
+
+    public void setNewAngle(int newAngle) {
+        if (currentAngle == newAngle) return;
+        if (newAngle < currentAngle) newAngle += 360;
+        ObjectAnimator animator = ObjectAnimator.ofFloat(this,
+                "rotation",
+                currentAngle,
+                newAngle);
+        animator.setDuration(duration);
+        animator.start();
+        currentAngle = newAngle;
     }
 
 

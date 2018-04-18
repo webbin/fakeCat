@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">山寨猫多米诺</string>
+    <string name="refresh_btn">刷新</string>
+    <string name="menu_3_3">3×3</string>
+    <string name="menu_4_4">4×4</string>
+    <string name="menu_5_5">5×5</string>
 </resources>

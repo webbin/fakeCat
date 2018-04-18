@@ -5,6 +5,7 @@ public class RotateImageData {
     private int index;
     private int resource;
     private RotatingListener listener;
+    private int initAngle = 0;
 
     public RotateImageData(int index, int resource) {
         this.index = index;
@@ -33,5 +34,13 @@ public class RotateImageData {
 
     public void setListener(RotatingListener listener) {
         this.listener = listener;
+    }
+
+    public int getInitAngle() {
+        return initAngle;
+    }
+
+    public void setInitAngle(int initAngle) {
+        this.initAngle = initAngle;
     }
 }

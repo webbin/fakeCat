@@ -13,8 +13,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -35,6 +38,8 @@ public class FakeCatActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ImageRotateAdapter adapter;
 
+    private Button refreshBtn;
+
     private int normalAngle = 90;
 
     private int rowCount = 3;
@@ -53,8 +58,11 @@ public class FakeCatActivity extends AppCompatActivity {
             switch (msg.what){
                 case MESSAGE_ROTATE_IMAGE:
                     int nextIndex = msg.arg1;
-                    if (nextIndex != NEXT_IS_NULL)
+                    if (nextIndex != NEXT_IS_NULL) {
                         activity.rotateImage(nextIndex);
+                    } else {
+                        activity.adapter.ennableTouch();
+                    }
                     break;
 
             }
@@ -76,13 +84,20 @@ public class FakeCatActivity extends AppCompatActivity {
 
     private void initView() {
         recyclerView = findViewById(R.id.image_rotate_recycler_view);
+        refreshBtn = findViewById(R.id.image_refresh_btn);
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, colCount));
-        adapter = new ImageRotateAdapter();
+        adapter = new ImageRotateAdapter(this);
         adapter.setDataList(generateDataList());
         recyclerView.setAdapter(adapter);
 
-//        recyclerView.getAdapter().get
+        refreshBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                refreshData();
+            }
+        });
+
     }
 
 
@@ -96,9 +111,20 @@ public class FakeCatActivity extends AppCompatActivity {
                 public void onEndRotate(int index, String endPointer) {
                     int nextIndex = getNextIndex(index,endPointer);
                     postRotateMessage(nextIndex);
-
                 }
             });
+            int initAngle;
+            double random = Math.random();
+            if (random > 0 && random <= 0.25) {
+                initAngle = 90;
+            } else if (random > 0.25 && random <= 0.5) {
+                initAngle = 180;
+            } else if (random > 0.5 && random <= 0.75) {
+                initAngle = 270;
+            } else {
+                initAngle = 0;
+            }
+            data.setInitAngle(initAngle);
             datas[i] = data;
         }
         return datas;
@@ -113,7 +139,7 @@ public class FakeCatActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(Constant.RATATE_DURATION);
                     Message message = Message.obtain();
                     message.arg1 = nextIndex;
                     message.what = MESSAGE_ROTATE_IMAGE;
@@ -125,7 +151,43 @@ public class FakeCatActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.rotate_image_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.grid_3_3:
+                rowCount = 3;
+                colCount = 3;
+                recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+                refreshData();
+                break;
+            case R.id.grid_4_4:
+                rowCount = 4;
+                colCount = 4;
+                recyclerView.setLayoutManager(new GridLayoutManager(this, 4));
+                refreshData();
+                break;
+            case R.id.grid_5_5:
+                rowCount = 5;
+                colCount = 5;
+                recyclerView.setLayoutManager(new GridLayoutManager(this, 5));
+                refreshData();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * 计算传递的下一个位置
+     * @param index 当前位置
+     * @param endPointer　旋转结束时指向的位置
+     * @return 下一个位置的下标
+     */
     private int getNextIndex(int index, String endPointer) {
         int nextIndex = NEXT_IS_NULL;
         switch (endPointer) {
@@ -153,71 +215,9 @@ public class FakeCatActivity extends AppCompatActivity {
         return nextIndex;
     }
 
-    private class ImageRotateAdapter extends RecyclerView.Adapter {
-
-
-        private RotateImageData[] dataList;
-        private RotateImageView[] imageList;
-
-        public ImageRotateAdapter() {
-            dataList = new RotateImageData[0];
-        }
-
-        class ImageViewHolder extends RecyclerView.ViewHolder {
-
-            private RotateImageView imageView;
-
-            public ImageViewHolder(View itemView) {
-                super(itemView);
-                imageView = itemView.findViewById(R.id.item_rotate_image);
-            }
-        }
-
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(FakeCatActivity.this).inflate(R.layout.item_rotate_image, parent, false);
-            return new ImageViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-
-            RotateImageData data = dataList[position];
-            ImageViewHolder imageViewHolder = (ImageViewHolder) holder;
-            imageViewHolder.imageView.setIndex(data.getIndex());
-            imageViewHolder.imageView.setImageResource(data.getResource());
-            imageViewHolder.imageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    RotateImageView imageView = (RotateImageView) v;
-                    imageView.rotate(90);
-                }
-            });
-            imageViewHolder.imageView.setRotatingListener(data.getListener());
-            if (position < imageList.length && imageList[position] == null) {
-                imageList[position] = imageViewHolder.imageView;
-            }
-        }
-
-        @Override
-        public int getItemCount() {
-            return dataList.length;
-        }
-
-        public RotateImageData[] getDataList() {
-            return dataList;
-        }
-
-        public void setDataList(RotateImageData[] dataList) {
-            this.dataList = dataList;
-            imageList = new RotateImageView[dataList.length];
-        }
-
-        public RotateImageView getRotateImage(int index) {
-            return imageList[index];
-        }
-
-
+    private void refreshData() {
+        adapter.setDataList(generateDataList());
     }
+
 
 }
